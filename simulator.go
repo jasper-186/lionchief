@@ -25,6 +25,10 @@ func NewSimulator(trainAddress bluetooth.Address) (*TrainSimulator, error) {
 	return &simulator, nil
 }
 
+func (a *TrainSimulator) Disconnect(speed int) error {
+	return a.engine.Disconnect()
+}
+
 func (a *TrainSimulator) AdjustSpeedTo(speed int) error {
 	if speed < 0 || 31 < speed {
 		return fmt.Errorf("speed must be between 0 and 31")

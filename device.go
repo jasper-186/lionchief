@@ -103,7 +103,7 @@ func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*Tra
 	return &train, nil
 }
 
-func (a *TrainEngine) Close() error {
+func (a *TrainEngine) Disconnect() error {
 	return a.device.Disconnect()
 }
 
