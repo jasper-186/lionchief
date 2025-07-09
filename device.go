@@ -1,0 +1,353 @@
+package lionchief
+
+// Train Commands in HEX
+// Set horn volume/pitch: 44 01 <00-0f> <fe-02>
+// Set bell volume/pitch: 44 02 <00-0f> <fe-02>
+// Set speech volume/pitch: 44 03 <00-0f> <fe-02>
+// Set engine volume/pitch: 44 04 <00-0f> <fe-02>
+// Set speed : 45 <00-1f>
+// Forward : 46 01
+// Reverse : 46 02
+// Bell start: 47 01
+// Bell stop : 47 00
+// Horn start: 48 01
+// Horn stop : 48 00
+// Disconnect: 4b 0 0
+// Set overall volume: 4b <00-07>
+// Set steam chuff volume: 4c <00-07>
+// Speech : 4d XX 00
+// Set lights off: 51 00
+// Set lights on: 51 01
+
+import (
+	"errors"
+	"fmt"
+
+	"tinygo.org/x/bluetooth"
+)
+
+type TrainState struct {
+	Speed        int
+	Reverse      bool
+	Light        bool
+	Volume       int
+	VolumeHorn   int
+	VolumeEngine int
+	VolumeBell   int
+	VolumeSpeech int
+	VolumeChuff  int
+}
+
+type TrainEngine struct {
+	device              bluetooth.Device
+	writeCharacteristic bluetooth.DeviceCharacteristic
+	state               TrainState
+}
+
+func calculateChecksum(cmdBuffer []byte) byte {
+	sumValue := int(0)
+	for _, value := range cmdBuffer {
+		sumValue = (int(value) + sumValue)
+	}
+	return byte(sumValue)
+}
+
+func NewEngineDefaultBluetoothAdapter(trainMacAddress string) (*TrainEngine, error) {
+	var adapter = bluetooth.DefaultAdapter
+	return NewEngine(trainMacAddress, adapter)
+}
+
+func NewEngine(trainMacAddress string, adapter *bluetooth.Adapter) (*TrainEngine, error) {
+	adapter.Enable()
+	macAddress := bluetooth.MACAddress{}
+	macAddress.Set(trainMacAddress)
+	device, err := adapter.Connect(bluetooth.Address{MACAddress: macAddress}, bluetooth.ConnectionParams{})
+	if err != nil {
+		return nil, err
+	}
+
+	devicesServices, err := device.DiscoverServices([]bluetooth.UUID{ReadWriteService})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(devicesServices) < 1 {
+		return nil, errors.New("failed to find read/write service")
+	}
+
+	characteristics, err := devicesServices[0].DiscoverCharacteristics([]bluetooth.UUID{WriteCharacteristic})
+	if err != nil {
+		return nil, err
+	}
+	if len(characteristics) < 1 {
+		return nil, errors.New("write characteristic not found")
+	}
+
+	train := TrainEngine{
+		device:              device,
+		writeCharacteristic: characteristics[0],
+		state: TrainState{
+			Speed:        0,
+			Reverse:      false,
+			Light:        true,
+			Volume:       1,
+			VolumeHorn:   1,
+			VolumeEngine: 0,
+			VolumeBell:   1,
+			VolumeSpeech: 1,
+			VolumeChuff:  1,
+		},
+	}
+
+	// Make sure the train is in the default state (specifically Volumes) before we return it
+	train.ResetState()
+
+	return &train, nil
+}
+
+func (a *TrainEngine) Close() error {
+	return a.device.Disconnect()
+}
+
+func (a *TrainEngine) ResetState() error {
+	a.state.Speed = 0
+	err := a.SetSpeed(0)
+	if err != nil {
+		return err
+	}
+
+	a.state.Reverse = false
+	err = a.SetReverse(false)
+	if err != nil {
+		return err
+	}
+
+	a.state.Light = true
+	err = a.SetLight(true)
+	if err != nil {
+		return err
+	}
+
+	a.state.Volume = 1
+	err = a.SetMainVolume(1)
+	if err != nil {
+		return err
+	}
+
+	a.state.VolumeHorn = 1
+	err = a.SetRunningVolume(SOUNDTYPE_HORN, 1)
+	if err != nil {
+		return err
+	}
+
+	a.state.VolumeEngine = 0
+	err = a.SetRunningVolume(SOUNDTYPE_ENGINE, 0)
+	if err != nil {
+		return err
+	}
+
+	a.state.VolumeBell = 1
+	err = a.SetRunningVolume(SOUNDTYPE_BELL, 1)
+	if err != nil {
+		return err
+	}
+
+	a.state.VolumeSpeech = 1
+	err = a.SetRunningVolume(SOUNDTYPE_SPEECH, 1)
+	if err != nil {
+		return err
+	}
+
+	a.state.VolumeChuff = 1
+	err = a.SetStoppedVolume(1)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *TrainEngine) send_cmd(cmdByteArray []byte) error {
+	checksumedCmd := make([]byte, len(cmdByteArray)+2)
+	checksumedCmd[0] = 0
+	// Copy the values but offset them by 1
+	for i, v := range cmdByteArray {
+		checksumedCmd[i+1] = v
+	}
+
+	checksumedCmd[len(cmdByteArray)+1] = byte(calculateChecksum(cmdByteArray))
+	_, err := a.writeCharacteristic.WriteWithoutResponse(checksumedCmd)
+	if err != nil {
+		errMess := fmt.Sprintf("error while writing command to device: %s", err)
+		return errors.New(errMess)
+	}
+
+	return nil
+}
+
+func (a *TrainEngine) SetMainVolume(volume int) error {
+	min := int(0)
+	max := int(6)
+	if volume > max || volume < min {
+		return fmt.Errorf("invalid volume, must be between '%d' and '%d' (inclusive)", min, max)
+	}
+
+	cmdArray := make([]byte, 2)
+	cmdArray[0] = byte(COMMANDTYPE_SOUND_MAIN)
+	cmdArray[1] = byte(volume)
+	err := a.send_cmd(cmdArray)
+	if err == nil {
+		a.state.Volume = volume
+	}
+	return err
+}
+
+func (a *TrainEngine) SetStoppedVolume(volume int) error {
+	min := int(0)
+	max := int(6)
+	if volume > max || volume < min {
+		return fmt.Errorf("invalid volume, must be between '%d' and '%d' (inclusive)", min, max)
+	}
+
+	cmdArray := make([]byte, 2)
+	cmdArray[0] = byte(COMMANDTYPE_SOUND_STOPPED)
+	cmdArray[1] = byte(volume)
+	err := a.send_cmd(cmdArray)
+	if err == nil {
+		// Currently there's only one type of stopped sound
+		a.state.VolumeChuff = volume
+	}
+	return err
+}
+
+func (a *TrainEngine) SetRunningVolume(soundtype SoundType, volume int) error {
+	min := int(0)
+	max := int(13)
+	if volume > max || volume < min {
+		return fmt.Errorf("invalid volume, must be between '%d' and '%d' (inclusive)", min, max)
+	}
+
+	cmdArray := make([]byte, 3)
+	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
+	cmdArray[1] = byte(soundtype)
+	cmdArray[2] = byte(volume)
+	err := a.send_cmd(cmdArray)
+	if err == nil {
+		switch soundtype {
+		case SOUNDTYPE_BELL:
+			a.state.VolumeBell = volume
+		case SOUNDTYPE_ENGINE:
+			a.state.VolumeEngine = volume
+		case SOUNDTYPE_HORN:
+			a.state.VolumeHorn = volume
+		case SOUNDTYPE_SPEECH:
+			a.state.VolumeSpeech = volume
+		}
+	}
+	return err
+}
+
+func (a *TrainEngine) SetRunningPitch(soundtype SoundType, pitch SoundPitch) error {
+	cmdArray := make([]byte, 4)
+	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
+	cmdArray[1] = byte(soundtype)
+	cmdArray[2] = byte(14)
+	cmdArray[3] = byte(pitch)
+	err := a.send_cmd(cmdArray)
+	return err
+}
+
+func (a *TrainEngine) SetSpeed(speed int) error {
+	cmdArray := make([]byte, 2)
+	cmdArray[0] = byte(COMMANDTYPE_SPEED)
+	cmdArray[1] = byte(speed)
+	err := a.send_cmd(cmdArray)
+	a.state.Speed = speed
+	return err
+}
+
+func (a *TrainEngine) GetSpeed() int {
+	return a.state.Speed
+}
+
+func (a *TrainEngine) SetHorn(enabled bool) error {
+	cmdArray := make([]byte, 2)
+	cmdArray[0] = byte(COMMANDTYPE_HORN)
+	var soundHorn int
+	if enabled {
+		soundHorn = 1
+	} else {
+		soundHorn = 0
+	}
+
+	cmdArray[1] = byte(soundHorn)
+	err := a.send_cmd(cmdArray)
+	return err
+}
+
+func (a *TrainEngine) SetReverse(enabled bool) error {
+	cmdArray := make([]byte, 2)
+	cmdArray[0] = byte(COMMANDTYPE_REVERSE)
+	var soundHorn int
+	if enabled {
+		soundHorn = 1
+	} else {
+		soundHorn = 0
+	}
+
+	cmdArray[1] = byte(soundHorn)
+	err := a.send_cmd(cmdArray)
+	a.state.Reverse = enabled
+	return err
+}
+
+func (a *TrainEngine) GetReverse() bool {
+	return a.state.Reverse
+}
+
+func (a *TrainEngine) SetBell(enabled bool) error {
+	cmdArray := make([]byte, 2)
+	cmdArray[0] = byte(COMMANDTYPE_BELL)
+	var soundHorn int
+	if enabled {
+		soundHorn = 1
+	} else {
+		soundHorn = 0
+	}
+
+	cmdArray[1] = byte(soundHorn)
+	err := a.send_cmd(cmdArray)
+	return err
+}
+
+func (a *TrainEngine) SetLight(enabled bool) error {
+	cmdArray := make([]byte, 2)
+	cmdArray[0] = byte(COMMANDTYPE_LIGHTS)
+	var soundHorn int
+	if enabled {
+		soundHorn = 1
+	} else {
+		soundHorn = 0
+	}
+
+	cmdArray[1] = byte(soundHorn)
+	err := a.send_cmd(cmdArray)
+	a.state.Light = enabled
+	return err
+}
+
+func (a *TrainEngine) GetLight() bool {
+	return a.state.Light
+}
+
+func (a *TrainEngine) Speak() error {
+	cmdArray := make([]byte, 2)
+	cmdArray[0] = byte(COMMANDTYPE_SPEAK)
+	cmdArray[1] = byte(0)
+	err := a.send_cmd(cmdArray)
+	return err
+}
+
+func (a *TrainEngine) SendCustomCommand(cmd []byte) error {
+	return a.send_cmd(cmd)
+}
