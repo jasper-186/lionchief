@@ -156,3 +156,7 @@ func (a *TrainSimulator) Speak() {
 func (a *TrainSimulator) Lights(on bool) {
 	a.engine.SetLight(on)
 }
+
+func (a *TrainSimulator) ToggleLights() {
+	a.engine.SetLight(!a.engine.GetLight())
+}
