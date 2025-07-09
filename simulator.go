@@ -25,7 +25,7 @@ func NewSimulator(trainAddress bluetooth.Address) (*TrainSimulator, error) {
 	return &simulator, nil
 }
 
-func (a *TrainSimulator) Disconnect(speed int) error {
+func (a *TrainSimulator) Disconnect() error {
 	return a.engine.Disconnect()
 }
 
