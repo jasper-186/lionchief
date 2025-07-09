@@ -53,8 +53,7 @@ func calculateChecksum(cmdBuffer []byte) byte {
 }
 
 func NewEngineDefaultBluetoothAdapter(trainAddress bluetooth.Address) (*TrainEngine, error) {
-	var adapter = bluetooth.DefaultAdapter
-	return NewEngine(trainAddress, adapter)
+	return NewEngine(trainAddress, bluetooth.DefaultAdapter)
 }
 
 func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*TrainEngine, error) {
@@ -77,6 +76,7 @@ func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*Tra
 	if err != nil {
 		return nil, err
 	}
+
 	if len(characteristics) < 1 {
 		return nil, errors.New("write characteristic not found")
 	}
@@ -98,8 +98,10 @@ func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*Tra
 	}
 
 	// Make sure the train is in the default state (specifically Volumes) before we return it
-	train.ResetState()
-
+	err = train.ResetState()
+	if err != nil {
+		return nil, err
+	}
 	return &train, nil
 }
 
