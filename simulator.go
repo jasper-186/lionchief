@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"math"
 	"time"
+
+	"tinygo.org/x/bluetooth"
 )
 
 type TrainSimulator struct {
 	engine TrainEngine
 }
 
-func New(trainMacAddress string) (*TrainSimulator, error) {
-	train, err := NewEngineDefaultBluetoothAdapter(trainMacAddress)
+func NewSimulator(trainAddress bluetooth.Address) (*TrainSimulator, error) {
+	train, err := NewEngineDefaultBluetoothAdapter(trainAddress)
 	if err != nil {
 		return nil, err
 	}

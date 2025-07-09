@@ -52,16 +52,14 @@ func calculateChecksum(cmdBuffer []byte) byte {
 	return byte(sumValue)
 }
 
-func NewEngineDefaultBluetoothAdapter(trainMacAddress string) (*TrainEngine, error) {
+func NewEngineDefaultBluetoothAdapter(trainAddress bluetooth.Address) (*TrainEngine, error) {
 	var adapter = bluetooth.DefaultAdapter
-	return NewEngine(trainMacAddress, adapter)
+	return NewEngine(trainAddress, adapter)
 }
 
-func NewEngine(trainMacAddress string, adapter *bluetooth.Adapter) (*TrainEngine, error) {
+func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*TrainEngine, error) {
 	adapter.Enable()
-	macAddress := bluetooth.MACAddress{}
-	macAddress.Set(trainMacAddress)
-	device, err := adapter.Connect(bluetooth.Address{MACAddress: macAddress}, bluetooth.ConnectionParams{})
+	device, err := adapter.Connect(trainAddress, bluetooth.ConnectionParams{})
 	if err != nil {
 		return nil, err
 	}
