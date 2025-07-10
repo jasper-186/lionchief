@@ -2,7 +2,8 @@ module github.com/jasper-186/lionchief
 
 go 1.24.4
 
-replace tinygo.org/x/bluetooth => /opt/train/bluetooth
+//replace tinygo.org/x/bluetooth => /opt/train/bluetooth
+replace tinygo.org/x/bluetooth => /home/joe/bluetooth
 require tinygo.org/x/bluetooth v0.12.0
 
 require (

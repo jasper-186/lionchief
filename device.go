@@ -41,6 +41,7 @@ type TrainState struct {
 
 type TrainEngine struct {
 	device              bluetooth.Device
+	writeService        bluetooth.DeviceService
 	writeCharacteristic bluetooth.DeviceCharacteristic
 	state               TrainState
 }
@@ -90,6 +91,7 @@ func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*Tra
 
 	train := TrainEngine{
 		device:              device,
+		writeService:        devicesServices[0],
 		writeCharacteristic: characteristics[0],
 		state: TrainState{
 			Speed:        0,
@@ -183,7 +185,7 @@ func (a *TrainEngine) sendCommand(cmdByteArray []byte) error {
 	}
 
 	checksumedCmd[len(cmdByteArray)+1] = byte(calculateChecksum(cmdByteArray))
-	_, err := a.writeCharacteristic.Write(checksumedCmd)
+	_, err := a.writeCharacteristic.WriteWithoutResponse(checksumedCmd)
 
 	if err != nil {
 		errMess := fmt.Sprintf("error while writing command to device: %s", err)
