@@ -43,7 +43,7 @@ type TrainEngine struct {
 	device              *bluetooth.Device
 	writeService        *bluetooth.DeviceService
 	writeCharacteristic *bluetooth.DeviceCharacteristic
-	state               TrainState
+	state               *TrainState
 }
 
 func must(action string, err error) {
@@ -104,7 +104,7 @@ func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*Tra
 		device:              &device,
 		writeService:        &devicesServices[0],
 		writeCharacteristic: &characteristics[0],
-		state: TrainState{
+		state: &TrainState{
 			Speed:        0,
 			Reverse:      false,
 			Light:        true,

@@ -165,6 +165,10 @@ func (a *TrainSimulator) Lights(enabled bool) error {
 	return err
 }
 
+func (a *TrainEngine) GetCurrentState() *TrainState {
+	return a.state
+}
+
 func (a *TrainSimulator) ToggleLights() error {
 	log.Println("ToggleLights")
 	return a.engine.SetLight(!a.engine.GetLight())
