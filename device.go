@@ -40,10 +40,16 @@ type TrainState struct {
 }
 
 type TrainEngine struct {
-	device              bluetooth.Device
-	writeService        bluetooth.DeviceService
-	writeCharacteristic bluetooth.DeviceCharacteristic
+	device              *bluetooth.Device
+	writeService        *bluetooth.DeviceService
+	writeCharacteristic *bluetooth.DeviceCharacteristic
 	state               TrainState
+}
+
+func must(action string, err error) {
+	if err != nil {
+		panic("failed to " + action + ": " + err.Error())
+	}
 }
 
 func calculateChecksum(cmdBuffer []byte) byte {
@@ -61,17 +67,12 @@ func NewEngineDefaultBluetoothAdapter(trainAddress bluetooth.Address) (*TrainEng
 func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*TrainEngine, error) {
 	log.Println("Enabling Adapter")
 	adapter.Enable()
-	log.Printf("Connecting to '%v'\n", trainAddress.MAC.String())
-	device, err := adapter.Connect(trainAddress, bluetooth.ConnectionParams{})
-	if err != nil {
-		return nil, err
-	}
 
-	log.Println("Discovering Services")
+	device, err := adapter.Connect(trainAddress, bluetooth.ConnectionParams{})
+	must(fmt.Sprintf("Connecting to '%v'\n", trainAddress.MAC.String()), err)
+
 	devicesServices, err := device.DiscoverServices([]bluetooth.UUID{ReadWriteService})
-	if err != nil {
-		return nil, err
-	}
+	must("Discovering Services", err)
 
 	log.Printf("Found '%v' services", len(devicesServices))
 	if len(devicesServices) < 1 {
@@ -90,9 +91,9 @@ func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*Tra
 	}
 
 	train := TrainEngine{
-		device:              device,
-		writeService:        devicesServices[0],
-		writeCharacteristic: characteristics[0],
+		device:              &device,
+		writeService:        &devicesServices[0],
+		writeCharacteristic: &characteristics[0],
 		state: TrainState{
 			Speed:        0,
 			Reverse:      false,
@@ -188,8 +189,7 @@ func (a *TrainEngine) sendCommand(cmdByteArray []byte) error {
 	_, err := a.writeCharacteristic.WriteWithoutResponse(checksumedCmd)
 
 	if err != nil {
-		errMess := fmt.Sprintf("error while writing command to device: %s", err)
-		return errors.New(errMess)
+		return fmt.Errorf("error while writing command to device: %s", err)
 	}
 
 	return nil
