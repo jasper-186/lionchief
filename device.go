@@ -211,6 +211,8 @@ func (a *TrainEngine) sendCommand(cmdByteArray []byte) error {
 }
 
 func (a *TrainEngine) SetMainVolume(volume int) error {
+	log.Println("SetMainVolume")
+	defer log.Println("SetMainVolume-Done")
 	min := int(0)
 	max := int(6)
 	if volume > max || volume < min {
@@ -228,6 +230,8 @@ func (a *TrainEngine) SetMainVolume(volume int) error {
 }
 
 func (a *TrainEngine) SetStoppedVolume(volume int) error {
+	log.Println("SetStoppedVolume")
+	defer log.Println("SetStoppedVolume-Done")
 	min := int(0)
 	max := int(6)
 	if volume > max || volume < min {
@@ -246,6 +250,8 @@ func (a *TrainEngine) SetStoppedVolume(volume int) error {
 }
 
 func (a *TrainEngine) SetRunningVolume(soundtype SoundType, volume int) error {
+	log.Println("SetRunningVolume")
+	defer log.Println("SetRunningVolume-Done")
 	min := int(0)
 	max := int(13)
 	if volume > max || volume < min {
@@ -273,6 +279,8 @@ func (a *TrainEngine) SetRunningVolume(soundtype SoundType, volume int) error {
 }
 
 func (a *TrainEngine) SetRunningPitch(soundtype SoundType, pitch SoundPitch) error {
+	log.Println("SetRunningPitch")
+	defer log.Println("SetRunningPitch-Done")
 	cmdArray := make([]byte, 4)
 	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
 	cmdArray[1] = byte(soundtype)
@@ -283,6 +291,8 @@ func (a *TrainEngine) SetRunningPitch(soundtype SoundType, pitch SoundPitch) err
 }
 
 func (a *TrainEngine) SetSpeed(speed int) error {
+	log.Println("SetSpeed")
+	defer log.Println("SetSpeed-Done")
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_SPEED)
 	cmdArray[1] = byte(speed)
@@ -296,6 +306,8 @@ func (a *TrainEngine) GetSpeed() int {
 }
 
 func (a *TrainEngine) SetHorn(enabled bool) error {
+	log.Println("SetHorn")
+	defer log.Println("SetHorn-Done")
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_HORN)
 	var soundHorn int
@@ -311,6 +323,8 @@ func (a *TrainEngine) SetHorn(enabled bool) error {
 }
 
 func (a *TrainEngine) SetReverse(enabled bool) error {
+	log.Println("SetReverse")
+	defer log.Println("SetReverse-Done")
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_REVERSE)
 	var soundHorn int
@@ -331,6 +345,8 @@ func (a *TrainEngine) GetReverse() bool {
 }
 
 func (a *TrainEngine) SetBell(enabled bool) error {
+	log.Println("SetBell")
+	defer log.Println("SetBell-Done")
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_BELL)
 	var soundHorn int
@@ -346,7 +362,8 @@ func (a *TrainEngine) SetBell(enabled bool) error {
 }
 
 func (a *TrainEngine) SetLight(enabled bool) error {
-	log.Println("SetLight")
+	log.Println("SetBell")
+	defer log.Println("SetLight-Done")
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_LIGHTS)
 	var soundHorn int
@@ -359,7 +376,6 @@ func (a *TrainEngine) SetLight(enabled bool) error {
 	cmdArray[1] = byte(soundHorn)
 	err := a.sendCommand(cmdArray)
 	a.state.Light = enabled
-	log.Println("SetLight-Done")
 	return err
 }
 
