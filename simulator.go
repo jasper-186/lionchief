@@ -153,14 +153,14 @@ func (a *TrainSimulator) SoundBell(length int) {
 	a.engine.SetBell(false)
 }
 
-func (a *TrainSimulator) Speak() {
-	a.engine.Speak()
+func (a *TrainSimulator) Speak() error {
+	return a.engine.Speak()
 }
 
-func (a *TrainSimulator) Lights(on bool) {
-	a.engine.SetLight(on)
+func (a *TrainSimulator) Lights(enabled bool) error {
+	return a.engine.SetLight(enabled)
 }
 
-func (a *TrainSimulator) ToggleLights() {
-	a.engine.SetLight(!a.engine.GetLight())
+func (a *TrainSimulator) ToggleLights() error {
+	return a.engine.SetLight(!a.engine.GetLight())
 }
