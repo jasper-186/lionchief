@@ -250,8 +250,8 @@ func (a *TrainEngine) SetStoppedVolume(volume int) error {
 }
 
 func (a *TrainEngine) SetRunningVolume(soundtype SoundType, volume int) error {
-	log.Println("SetRunningVolume")
-	defer log.Println("SetRunningVolume-Done")
+	log.Printf("SetRunningVolume-%v\n", soundtype)
+	defer log.Printf("SetRunningVolume-%v-Done\n", soundtype)
 	min := int(0)
 	max := int(13)
 	if volume > max || volume < min {
@@ -362,7 +362,7 @@ func (a *TrainEngine) SetBell(enabled bool) error {
 }
 
 func (a *TrainEngine) SetLight(enabled bool) error {
-	log.Println("SetBell")
+	log.Println("SetLight")
 	defer log.Println("SetLight-Done")
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_LIGHTS)
