@@ -130,55 +130,55 @@ func (a *TrainEngine) Disconnect() error {
 }
 
 func (a *TrainEngine) ResetState() error {
-	a.state.Speed = 0
+	(*a).state.Speed = 0
 	err := a.SetSpeed(0)
 	if err != nil {
 		return err
 	}
 
-	a.state.Reverse = false
+	(*a).state.Reverse = false
 	err = a.SetReverse(false)
 	if err != nil {
 		return err
 	}
 
-	a.state.Light = true
+	(*a).state.Light = true
 	err = a.SetLight(true)
 	if err != nil {
 		return err
 	}
 
-	a.state.Volume = 1
+	(*a).state.Volume = 1
 	err = a.SetMainVolume(1)
 	if err != nil {
 		return err
 	}
 
-	a.state.VolumeHorn = 1
+	(*a).state.VolumeHorn = 1
 	err = a.SetRunningVolume(SOUNDTYPE_HORN, 1)
 	if err != nil {
 		return err
 	}
 
-	a.state.VolumeEngine = 0
+	(*a).state.VolumeEngine = 0
 	err = a.SetRunningVolume(SOUNDTYPE_ENGINE, 0)
 	if err != nil {
 		return err
 	}
 
-	a.state.VolumeBell = 1
+	(*a).state.VolumeBell = 1
 	err = a.SetRunningVolume(SOUNDTYPE_BELL, 1)
 	if err != nil {
 		return err
 	}
 
-	a.state.VolumeSpeech = 1
+	(*a).state.VolumeSpeech = 1
 	err = a.SetRunningVolume(SOUNDTYPE_SPEECH, 1)
 	if err != nil {
 		return err
 	}
 
-	a.state.VolumeChuff = 1
+	(*a).state.VolumeChuff = 1
 	err = a.SetStoppedVolume(1)
 	if err != nil {
 		return err
@@ -224,7 +224,7 @@ func (a *TrainEngine) SetMainVolume(volume int) error {
 	cmdArray[1] = byte(volume)
 	err := a.sendCommand(cmdArray)
 	if err == nil {
-		a.state.Volume = volume
+		(*a).state.Volume = volume
 	}
 	return err
 }
@@ -244,7 +244,7 @@ func (a *TrainEngine) SetStoppedVolume(volume int) error {
 	err := a.sendCommand(cmdArray)
 	if err == nil {
 		// Currently there's only one type of stopped sound
-		a.state.VolumeChuff = volume
+		(*a).state.VolumeChuff = volume
 	}
 	return err
 }
@@ -266,13 +266,13 @@ func (a *TrainEngine) SetRunningVolume(soundtype SoundType, volume int) error {
 	if err == nil {
 		switch soundtype {
 		case SOUNDTYPE_BELL:
-			a.state.VolumeBell = volume
+			(*a).state.VolumeBell = volume
 		case SOUNDTYPE_ENGINE:
-			a.state.VolumeEngine = volume
+			(*a).state.VolumeEngine = volume
 		case SOUNDTYPE_HORN:
-			a.state.VolumeHorn = volume
+			(*a).state.VolumeHorn = volume
 		case SOUNDTYPE_SPEECH:
-			a.state.VolumeSpeech = volume
+			(*a).state.VolumeSpeech = volume
 		}
 	}
 	return err
@@ -297,12 +297,12 @@ func (a *TrainEngine) SetSpeed(speed int) error {
 	cmdArray[0] = byte(COMMANDTYPE_SPEED)
 	cmdArray[1] = byte(speed)
 	err := a.sendCommand(cmdArray)
-	a.state.Speed = speed
+	(*a).state.Speed = speed
 	return err
 }
 
 func (a *TrainEngine) GetSpeed() int {
-	return a.state.Speed
+	return (*a).state.Speed
 }
 
 func (a *TrainEngine) SetHorn(enabled bool) error {
@@ -336,12 +336,12 @@ func (a *TrainEngine) SetReverse(enabled bool) error {
 
 	cmdArray[1] = byte(soundHorn)
 	err := a.sendCommand(cmdArray)
-	a.state.Reverse = enabled
+	(*a).state.Reverse = enabled
 	return err
 }
 
 func (a *TrainEngine) GetReverse() bool {
-	return a.state.Reverse
+	return (*a).state.Reverse
 }
 
 func (a *TrainEngine) SetBell(enabled bool) error {
@@ -375,12 +375,12 @@ func (a *TrainEngine) SetLight(enabled bool) error {
 
 	cmdArray[1] = byte(soundHorn)
 	err := a.sendCommand(cmdArray)
-	a.state.Light = enabled
+	(*a).state.Light = enabled
 	return err
 }
 
 func (a *TrainEngine) GetLight() bool {
-	return a.state.Light
+	return (*a).state.Light
 }
 
 func (a *TrainEngine) Speak() error {
