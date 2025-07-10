@@ -53,11 +53,11 @@ func must(action string, err error) {
 }
 
 func calculateChecksum(cmdBuffer []byte) byte {
-	sumValue := int(0)
+	sumValue := 0
 	for _, value := range cmdBuffer {
 		sumValue = (int(value) + sumValue)
 	}
-	return byte(sumValue)
+	return byte(uint(sumValue))
 }
 
 func NewEngineDefaultBluetoothAdapter(trainAddress bluetooth.Address) (*TrainEngine, error) {
@@ -195,11 +195,15 @@ func (a *TrainEngine) sendCommand(cmdByteArray []byte) error {
 		checksumedCmd[i+1] = v
 	}
 
-	checksumedCmd[len(cmdByteArray)+1] = byte(calculateChecksum(cmdByteArray))
-	_, err := a.writeCharacteristic.WriteWithoutResponse(checksumedCmd)
+	checksumedCmd[len(cmdByteArray)+1] = calculateChecksum(cmdByteArray)
+	written, err := a.writeCharacteristic.WriteWithoutResponse(checksumedCmd)
 
 	if err != nil {
-		return fmt.Errorf("error while writing command to device: %s", err)
+		return err
+	}
+
+	if written != len(checksumedCmd) {
+		return fmt.Errorf("writing command only wrote '%v' bytes of '%v'", written, len(checksumedCmd))
 	}
 
 	return nil

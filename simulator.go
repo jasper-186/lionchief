@@ -9,7 +9,7 @@ import (
 )
 
 type TrainSimulator struct {
-	engine TrainEngine
+	engine *TrainEngine
 }
 
 func NewSimulator(trainAddress bluetooth.Address) (*TrainSimulator, error) {
@@ -19,7 +19,7 @@ func NewSimulator(trainAddress bluetooth.Address) (*TrainSimulator, error) {
 	}
 
 	simulator := TrainSimulator{
-		engine: *train,
+		engine: train,
 	}
 
 	return &simulator, nil
