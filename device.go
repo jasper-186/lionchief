@@ -188,6 +188,7 @@ func (a *TrainEngine) ResetState() error {
 }
 
 func (a *TrainEngine) sendCommand(cmdByteArray []byte) error {
+	log.Println("sendCommand")
 	checksumedCmd := make([]byte, len(cmdByteArray)+2)
 	checksumedCmd[0] = 0
 	// Copy the values but offset them by 1
@@ -205,7 +206,7 @@ func (a *TrainEngine) sendCommand(cmdByteArray []byte) error {
 	if written != len(checksumedCmd) {
 		return fmt.Errorf("writing command only wrote '%v' bytes of '%v'", written, len(checksumedCmd))
 	}
-
+	log.Println("sendCommand-Done")
 	return nil
 }
 
@@ -345,6 +346,7 @@ func (a *TrainEngine) SetBell(enabled bool) error {
 }
 
 func (a *TrainEngine) SetLight(enabled bool) error {
+	log.Println("SetLight")
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_LIGHTS)
 	var soundHorn int
@@ -357,6 +359,7 @@ func (a *TrainEngine) SetLight(enabled bool) error {
 	cmdArray[1] = byte(soundHorn)
 	err := a.sendCommand(cmdArray)
 	a.state.Light = enabled
+	log.Println("SetLight-Done")
 	return err
 }
 

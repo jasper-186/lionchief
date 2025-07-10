@@ -2,6 +2,7 @@ package lionchief
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"time"
 
@@ -158,9 +159,13 @@ func (a *TrainSimulator) Speak() error {
 }
 
 func (a *TrainSimulator) Lights(enabled bool) error {
-	return a.engine.SetLight(enabled)
+	log.Println("Lights")
+	err := a.engine.SetLight(enabled)
+	log.Println("Lights-Done")
+	return err
 }
 
 func (a *TrainSimulator) ToggleLights() error {
+	log.Println("ToggleLights")
 	return a.engine.SetLight(!a.engine.GetLight())
 }
