@@ -183,7 +183,7 @@ func (a *TrainEngine) sendCommand(cmdByteArray []byte) error {
 	}
 
 	checksumedCmd[len(cmdByteArray)+1] = byte(calculateChecksum(cmdByteArray))
-	_, err := a.writeCharacteristic.WriteWithoutResponse(checksumedCmd)
+	_, err := a.writeCharacteristic.Write(checksumedCmd)
 
 	if err != nil {
 		errMess := fmt.Sprintf("error while writing command to device: %s", err)
