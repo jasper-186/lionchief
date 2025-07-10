@@ -22,6 +22,7 @@ package lionchief
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"tinygo.org/x/bluetooth"
 )
@@ -57,26 +58,32 @@ func NewEngineDefaultBluetoothAdapter(trainAddress bluetooth.Address) (*TrainEng
 }
 
 func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*TrainEngine, error) {
+	log.Println("Enabling Adapter")
 	adapter.Enable()
+	log.Printf("Connecting to '%v'\n", trainAddress.MAC.String())
 	device, err := adapter.Connect(trainAddress, bluetooth.ConnectionParams{})
 	if err != nil {
 		return nil, err
 	}
 
+	log.Println("Discovering Services")
 	devicesServices, err := device.DiscoverServices([]bluetooth.UUID{ReadWriteService})
 	if err != nil {
 		return nil, err
 	}
 
+	log.Printf("Found '%v' services", len(devicesServices))
 	if len(devicesServices) < 1 {
 		return nil, errors.New("failed to find read/write service")
 	}
 
+	log.Println("Discovering Characteristics")
 	characteristics, err := devicesServices[0].DiscoverCharacteristics([]bluetooth.UUID{WriteCharacteristic})
 	if err != nil {
 		return nil, err
 	}
 
+	log.Printf("Found '%v' characteristics", len(characteristics))
 	if len(characteristics) < 1 {
 		return nil, errors.New("write characteristic not found")
 	}
@@ -167,7 +174,7 @@ func (a *TrainEngine) ResetState() error {
 	return nil
 }
 
-func (a *TrainEngine) send_cmd(cmdByteArray []byte) error {
+func (a *TrainEngine) sendCommand(cmdByteArray []byte) error {
 	checksumedCmd := make([]byte, len(cmdByteArray)+2)
 	checksumedCmd[0] = 0
 	// Copy the values but offset them by 1
@@ -177,6 +184,7 @@ func (a *TrainEngine) send_cmd(cmdByteArray []byte) error {
 
 	checksumedCmd[len(cmdByteArray)+1] = byte(calculateChecksum(cmdByteArray))
 	_, err := a.writeCharacteristic.WriteWithoutResponse(checksumedCmd)
+
 	if err != nil {
 		errMess := fmt.Sprintf("error while writing command to device: %s", err)
 		return errors.New(errMess)
@@ -195,7 +203,7 @@ func (a *TrainEngine) SetMainVolume(volume int) error {
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_SOUND_MAIN)
 	cmdArray[1] = byte(volume)
-	err := a.send_cmd(cmdArray)
+	err := a.sendCommand(cmdArray)
 	if err == nil {
 		a.state.Volume = volume
 	}
@@ -212,7 +220,7 @@ func (a *TrainEngine) SetStoppedVolume(volume int) error {
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_SOUND_STOPPED)
 	cmdArray[1] = byte(volume)
-	err := a.send_cmd(cmdArray)
+	err := a.sendCommand(cmdArray)
 	if err == nil {
 		// Currently there's only one type of stopped sound
 		a.state.VolumeChuff = volume
@@ -231,7 +239,7 @@ func (a *TrainEngine) SetRunningVolume(soundtype SoundType, volume int) error {
 	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
 	cmdArray[1] = byte(soundtype)
 	cmdArray[2] = byte(volume)
-	err := a.send_cmd(cmdArray)
+	err := a.sendCommand(cmdArray)
 	if err == nil {
 		switch soundtype {
 		case SOUNDTYPE_BELL:
@@ -253,7 +261,7 @@ func (a *TrainEngine) SetRunningPitch(soundtype SoundType, pitch SoundPitch) err
 	cmdArray[1] = byte(soundtype)
 	cmdArray[2] = byte(14)
 	cmdArray[3] = byte(pitch)
-	err := a.send_cmd(cmdArray)
+	err := a.sendCommand(cmdArray)
 	return err
 }
 
@@ -261,7 +269,7 @@ func (a *TrainEngine) SetSpeed(speed int) error {
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_SPEED)
 	cmdArray[1] = byte(speed)
-	err := a.send_cmd(cmdArray)
+	err := a.sendCommand(cmdArray)
 	a.state.Speed = speed
 	return err
 }
@@ -281,7 +289,7 @@ func (a *TrainEngine) SetHorn(enabled bool) error {
 	}
 
 	cmdArray[1] = byte(soundHorn)
-	err := a.send_cmd(cmdArray)
+	err := a.sendCommand(cmdArray)
 	return err
 }
 
@@ -296,7 +304,7 @@ func (a *TrainEngine) SetReverse(enabled bool) error {
 	}
 
 	cmdArray[1] = byte(soundHorn)
-	err := a.send_cmd(cmdArray)
+	err := a.sendCommand(cmdArray)
 	a.state.Reverse = enabled
 	return err
 }
@@ -316,7 +324,7 @@ func (a *TrainEngine) SetBell(enabled bool) error {
 	}
 
 	cmdArray[1] = byte(soundHorn)
-	err := a.send_cmd(cmdArray)
+	err := a.sendCommand(cmdArray)
 	return err
 }
 
@@ -331,7 +339,7 @@ func (a *TrainEngine) SetLight(enabled bool) error {
 	}
 
 	cmdArray[1] = byte(soundHorn)
-	err := a.send_cmd(cmdArray)
+	err := a.sendCommand(cmdArray)
 	a.state.Light = enabled
 	return err
 }
@@ -344,10 +352,10 @@ func (a *TrainEngine) Speak() error {
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_SPEAK)
 	cmdArray[1] = byte(0)
-	err := a.send_cmd(cmdArray)
+	err := a.sendCommand(cmdArray)
 	return err
 }
 
 func (a *TrainEngine) SendCustomCommand(cmd []byte) error {
-	return a.send_cmd(cmd)
+	return a.sendCommand(cmd)
 }
