@@ -173,3 +173,8 @@ func (a *TrainSimulator) ToggleLights() error {
 	log.Println("ToggleLights")
 	return a.engine.SetLight(!a.engine.GetLight())
 }
+
+func (a *TrainSimulator) SetRunningVolume(soundtype SoundType, volume int) error {
+	log.Println("SetRunningVolume")
+	return a.engine.SetRunningVolume(soundtype, volume)
+}
