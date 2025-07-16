@@ -228,6 +228,7 @@ func (a *TrainEngine) SetMainVolume(volume int) error {
 	// 	(*a).state.Volume = volume
 	// }
 	// return err
+	return nil
 }
 
 func (a *TrainEngine) SetStoppedVolume(volume int) error {
