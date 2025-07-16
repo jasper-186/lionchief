@@ -219,14 +219,15 @@ func (a *TrainEngine) SetMainVolume(volume int) error {
 		return fmt.Errorf("invalid volume, must be between '%d' and '%d' (inclusive)", min, max)
 	}
 
-	cmdArray := make([]byte, 2)
-	cmdArray[0] = byte(COMMANDTYPE_SOUND_MAIN)
-	cmdArray[1] = byte(volume)
-	err := a.sendCommand(cmdArray)
-	if err == nil {
-		(*a).state.Volume = volume
-	}
-	return err
+	// this currently is getting confused with the Disconnect command, so bail for now
+	// cmdArray := make([]byte, 2)
+	// cmdArray[0] = byte(COMMANDTYPE_SOUND_MAIN)
+	// cmdArray[1] = byte(volume)
+	// err := a.sendCommand(cmdArray)
+	// if err == nil {
+	// 	(*a).state.Volume = volume
+	// }
+	// return err
 }
 
 func (a *TrainEngine) SetStoppedVolume(volume int) error {
