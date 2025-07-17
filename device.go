@@ -158,8 +158,8 @@ func (a *TrainEngine) ResetState() error {
 		return err
 	}
 
-	(*a).state.VolumeEngine = 7
-	err = a.SetRunningVolume(SOUNDTYPE_ENGINE, 7)
+	(*a).state.VolumeEngine = 0
+	err = a.SetRunningVolume(SOUNDTYPE_ENGINE, 0)
 	if err != nil {
 		return err
 	}
