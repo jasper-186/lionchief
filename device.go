@@ -13,8 +13,7 @@ package lionchief
 // Horn start: 48 01
 // Horn stop : 48 00
 // Disconnect: 4b 0 0
-// Set overall volume: 4b <00-07>
-// Set steam chuff volume: 4c <00-07>
+// Set overall volume: 4c <00-07>
 // Speech : 4d XX 00
 // Set lights off: 51 00
 // Set lights on: 51 01
@@ -36,7 +35,6 @@ type TrainState struct {
 	VolumeEngine int
 	VolumeBell   int
 	VolumeSpeech int
-	VolumeChuff  int
 }
 
 type TrainEngine struct {
@@ -113,7 +111,7 @@ func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*Tra
 			VolumeEngine: 0,
 			VolumeBell:   1,
 			VolumeSpeech: 1,
-			VolumeChuff:  1,
+			//VolumeChuff:  1,
 		},
 	}
 
@@ -178,12 +176,6 @@ func (a *TrainEngine) ResetState() error {
 		return err
 	}
 
-	(*a).state.VolumeChuff = 1
-	err = a.SetStoppedVolume(1)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -219,34 +211,12 @@ func (a *TrainEngine) SetMainVolume(volume int) error {
 		return fmt.Errorf("invalid volume, must be between '%d' and '%d' (inclusive)", min, max)
 	}
 
-	// this currently is getting confused with the Disconnect command, so bail for now
-	// cmdArray := make([]byte, 2)
-	// cmdArray[0] = byte(COMMANDTYPE_SOUND_MAIN)
-	// cmdArray[1] = byte(volume)
-	// err := a.sendCommand(cmdArray)
-	// if err == nil {
-	// 	(*a).state.Volume = volume
-	// }
-	// return err
-	return nil
-}
-
-func (a *TrainEngine) SetStoppedVolume(volume int) error {
-	log.Println("SetStoppedVolume")
-	defer log.Println("SetStoppedVolume-Done")
-	min := int(0)
-	max := int(6)
-	if volume > max || volume < min {
-		return fmt.Errorf("invalid volume, must be between '%d' and '%d' (inclusive)", min, max)
-	}
-
 	cmdArray := make([]byte, 2)
-	cmdArray[0] = byte(COMMANDTYPE_SOUND_STOPPED)
+	cmdArray[0] = byte(COMMANDTYPE_SOUND_MAIN)
 	cmdArray[1] = byte(volume)
 	err := a.sendCommand(cmdArray)
 	if err == nil {
-		// Currently there's only one type of stopped sound
-		(*a).state.VolumeChuff = volume
+		(*a).state.Volume = volume
 	}
 	return err
 }
