@@ -206,7 +206,7 @@ func (a *TrainEngine) SetMainVolume(volume int) error {
 	log.Println("SetMainVolume")
 	defer log.Println("SetMainVolume-Done")
 	min := int(0)
-	max := int(6)
+	max := int(7)
 	if volume > max || volume < min {
 		return fmt.Errorf("invalid volume, must be between '%d' and '%d' (inclusive)", min, max)
 	}
