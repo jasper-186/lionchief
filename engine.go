@@ -66,13 +66,6 @@ func NewEngineDefaultBluetoothAdapter(trainAddress bluetooth.Address) (*TrainEng
 func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*TrainEngine, error) {
 
 	connectionParams := bluetooth.ConnectionParams{}
-	adapter.SetConnectHandler(func(device bluetooth.Device, connected bool) {
-		log.Println("Connection Handler")
-		// if trainAddress.MAC.String() == device.Address.String() && !connected {
-		// 	log.Printf("Reconnecting to '%s' \n", device.Address.MAC.String())
-		// 	adapter.Connect(device.Address, connectionParams)
-		// }
-	})
 
 	log.Println("Enabling Adapter")
 	adapter.Enable()
