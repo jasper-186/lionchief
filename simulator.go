@@ -180,3 +180,39 @@ func (a *TrainSimulator) ToggleLights() error {
 	log.Println("ToggleLights")
 	return a.engine.SetLight(!a.engine.GetLight())
 }
+
+func (a *TrainSimulator) SetMainVolume(volume int) error {
+	return a.engine.SetMainVolume(volume)
+}
+
+func (a *TrainSimulator) SetBellVolume(volume int) error {
+	return a.engine.SetBellVolume(volume)
+}
+
+func (a *TrainSimulator) SetEngineVolume(volume int) error {
+	return a.engine.SetEngineVolume(volume)
+}
+
+func (a *TrainSimulator) SetHornVolume(volume int) error {
+	return a.engine.SetHornVolume(volume)
+}
+
+func (a *TrainSimulator) SetSpeechVolume(volume int) error {
+	return a.engine.SetSpeechVolume(volume)
+}
+
+func (a *TrainSimulator) SetBellPitch(pitch SoundPitch) error {
+	return a.engine.SetBellPitch(pitch)
+}
+
+func (a *TrainSimulator) SetEnginePitch(pitch SoundPitch) error {
+	return a.engine.SetEnginePitch(pitch)
+}
+
+func (a *TrainSimulator) SetHornPitch(pitch SoundPitch) error {
+	return a.engine.SetHornPitch(pitch)
+}
+
+func (a *TrainSimulator) SetSpeechPhrase(phrase SpeechPhrase) error {
+	return a.engine.SetSpeechPhrase(phrase)
+}

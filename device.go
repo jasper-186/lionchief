@@ -469,6 +469,7 @@ func (a *TrainEngine) Speak() error {
 }
 
 func (a *TrainEngine) SpeakPhrase(phrase SpeechPhrase) error {
+	log.Printf("SpeakPhrase called with '%v' as argument", phrase)
 	err := a.SetSpeechPhrase((phrase))
 
 	if err != nil {
