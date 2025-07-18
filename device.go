@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 
 	"tinygo.org/x/bluetooth"
 )
@@ -153,25 +154,25 @@ func (a *TrainEngine) ResetState() error {
 	}
 
 	(*a).state.VolumeHorn = 7
-	err = a.SetRunningVolume(SOUNDTYPE_HORN, 7)
+	err = a.SetHornVolume(7)
 	if err != nil {
 		return err
 	}
 
 	(*a).state.VolumeEngine = 0
-	err = a.SetRunningVolume(SOUNDTYPE_ENGINE, 0)
+	err = a.SetEngineVolume(0)
 	if err != nil {
 		return err
 	}
 
 	(*a).state.VolumeBell = 7
-	err = a.SetRunningVolume(SOUNDTYPE_BELL, 7)
+	err = a.SetBellVolume(7)
 	if err != nil {
 		return err
 	}
 
 	(*a).state.VolumeSpeech = 7
-	err = a.SetRunningVolume(SOUNDTYPE_SPEECH, 7)
+	err = a.SetSpeechVolume(7)
 	if err != nil {
 		return err
 	}
@@ -221,9 +222,9 @@ func (a *TrainEngine) SetMainVolume(volume int) error {
 	return err
 }
 
-func (a *TrainEngine) SetRunningVolume(soundtype SoundType, volume int) error {
-	log.Printf("SetRunningVolume-%v\n", soundtype)
-	defer log.Printf("SetRunningVolume-%v-Done\n", soundtype)
+func (a *TrainEngine) SetBellVolume(volume int) error {
+	log.Println("SetBellVolume")
+	defer log.Println("SetBellVolume-Done")
 	min := int(0)
 	max := int(13)
 	if volume > max || volume < min {
@@ -232,32 +233,136 @@ func (a *TrainEngine) SetRunningVolume(soundtype SoundType, volume int) error {
 
 	cmdArray := make([]byte, 3)
 	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
-	cmdArray[1] = byte(soundtype)
+	cmdArray[1] = byte(SOUNDTYPE_BELL)
 	cmdArray[2] = byte(volume)
 	err := a.sendCommand(cmdArray)
 	if err == nil {
-		switch soundtype {
-		case SOUNDTYPE_BELL:
-			(*a).state.VolumeBell = volume
-		case SOUNDTYPE_ENGINE:
-			(*a).state.VolumeEngine = volume
-		case SOUNDTYPE_HORN:
-			(*a).state.VolumeHorn = volume
-		case SOUNDTYPE_SPEECH:
-			(*a).state.VolumeSpeech = volume
-		}
+		(*a).state.VolumeBell = volume
 	}
 	return err
 }
 
-func (a *TrainEngine) SetRunningPitch(soundtype SoundType, pitch SoundPitch) error {
-	log.Println("SetRunningPitch")
-	defer log.Println("SetRunningPitch-Done")
+func (a *TrainEngine) SetEngineVolume(volume int) error {
+	log.Println("SetEngineVolume")
+	defer log.Println("SetEngineVolume-Done")
+	min := int(0)
+	max := int(13)
+	if volume > max || volume < min {
+		return fmt.Errorf("invalid volume, must be between '%d' and '%d' (inclusive)", min, max)
+	}
+
+	cmdArray := make([]byte, 3)
+	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
+	cmdArray[1] = byte(SOUNDTYPE_ENGINE)
+	cmdArray[2] = byte(volume)
+	err := a.sendCommand(cmdArray)
+	if err == nil {
+		(*a).state.VolumeEngine = volume
+	}
+	return err
+}
+
+func (a *TrainEngine) SetHornVolume(volume int) error {
+	log.Println("SetHornVolume")
+	defer log.Println("SetHornVolume-Done")
+	min := int(0)
+	max := int(13)
+	if volume > max || volume < min {
+		return fmt.Errorf("invalid volume, must be between '%d' and '%d' (inclusive)", min, max)
+	}
+
+	cmdArray := make([]byte, 3)
+	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
+	cmdArray[1] = byte(SOUNDTYPE_HORN)
+	cmdArray[2] = byte(volume)
+	err := a.sendCommand(cmdArray)
+	if err == nil {
+		(*a).state.VolumeHorn = volume
+	}
+	return err
+}
+
+func (a *TrainEngine) SetSpeechVolume(volume int) error {
+	log.Println("SetSpeechVolume")
+	defer log.Println("SetSpeechVolume-Done")
+	min := int(0)
+	max := int(13)
+	if volume > max || volume < min {
+		return fmt.Errorf("invalid volume, must be between '%d' and '%d' (inclusive)", min, max)
+	}
+
+	cmdArray := make([]byte, 3)
+	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
+	cmdArray[1] = byte(SOUNDTYPE_SPEECH)
+	cmdArray[2] = byte(volume)
+	err := a.sendCommand(cmdArray)
+	if err == nil {
+		(*a).state.VolumeSpeech = volume
+	}
+	return err
+}
+
+func (a *TrainEngine) SetBellPitch(pitch SoundPitch) error {
+	log.Println("SetBellPitch")
+	defer log.Println("SetBellPitch-Done")
+	validPitches := []int{SOUNDPITCH_HIGHEST, SOUNDPITCH_HIGH, SOUNDPITCH_NORMAL, SOUNDPITCH_LOW, SOUNDPITCH_LOWEST}
+	if !slices.Contains(validPitches, int(pitch)) {
+		return fmt.Errorf("invalid pitch, must be one of 'SOUNDPITCH_HIGHEST, SOUNDPITCH_HIGH, SOUNDPITCH_NORMAL, SOUNDPITCH_LOW, SOUNDPITCH_LOWEST' or int of '%v'", validPitches)
+	}
+
 	cmdArray := make([]byte, 4)
 	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
-	cmdArray[1] = byte(soundtype)
+	cmdArray[1] = byte(SOUNDTYPE_BELL)
 	cmdArray[2] = byte(14)
 	cmdArray[3] = byte(pitch)
+	err := a.sendCommand(cmdArray)
+	return err
+}
+func (a *TrainEngine) SetEnginePitch(pitch SoundPitch) error {
+	log.Println("SetEnginePitch")
+	defer log.Println("SetEnginePitch-Done")
+	validPitches := []int{SOUNDPITCH_HIGHEST, SOUNDPITCH_HIGH, SOUNDPITCH_NORMAL, SOUNDPITCH_LOW, SOUNDPITCH_LOWEST}
+	if !slices.Contains(validPitches, int(pitch)) {
+		return fmt.Errorf("invalid pitch, must be one of 'SOUNDPITCH_HIGHEST, SOUNDPITCH_HIGH, SOUNDPITCH_NORMAL, SOUNDPITCH_LOW, SOUNDPITCH_LOWEST' or int of '%v'", validPitches)
+	}
+
+	cmdArray := make([]byte, 4)
+	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
+	cmdArray[1] = byte(SOUNDTYPE_ENGINE)
+	cmdArray[2] = byte(14)
+	cmdArray[3] = byte(pitch)
+	err := a.sendCommand(cmdArray)
+	return err
+}
+func (a *TrainEngine) SetHornPitch(pitch SoundPitch) error {
+	log.Println("SetHornPitch")
+	defer log.Println("SetHornPitch-Done")
+	validPitches := []int{SOUNDPITCH_HIGHEST, SOUNDPITCH_HIGH, SOUNDPITCH_NORMAL, SOUNDPITCH_LOW, SOUNDPITCH_LOWEST}
+	if !slices.Contains(validPitches, int(pitch)) {
+		return fmt.Errorf("invalid pitch, must be one of 'SOUNDPITCH_HIGHEST, SOUNDPITCH_HIGH, SOUNDPITCH_NORMAL, SOUNDPITCH_LOW, SOUNDPITCH_LOWEST' or int of '%v'", validPitches)
+	}
+
+	cmdArray := make([]byte, 4)
+	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
+	cmdArray[1] = byte(SOUNDTYPE_HORN)
+	cmdArray[2] = byte(14)
+	cmdArray[3] = byte(pitch)
+	err := a.sendCommand(cmdArray)
+	return err
+}
+func (a *TrainEngine) SetSpeechPhrase(phrase SpeechPhrase) error {
+	log.Println("SetSpeechPhrase")
+	defer log.Println("SetSpeechPhrase-Done")
+	validPhrases := []int{SPEECHPHRASE_HIGHEST, SPEECHPHRASE_HIGH, SPEECHPHRASE_NORMAL, SPEECHPHRASE_LOW, SPEECHPHRASE_LOWEST}
+	if !slices.Contains(validPhrases, int(phrase)) {
+		return fmt.Errorf("invalid phrase, must be one of 'SPEECHPHRASE_HIGHEST, SPEECHPHRASE_HIGH, SPEECHPHRASE_NORMAL, SPEECHPHRASE_LOW, SPEECHPHRASE_LOWEST' or int of '%v'", validPhrases)
+	}
+
+	cmdArray := make([]byte, 4)
+	cmdArray[0] = byte(COMMANDTYPE_SOUND_RUNNING)
+	cmdArray[1] = byte(SOUNDTYPE_SPEECH)
+	cmdArray[2] = byte(14)
+	cmdArray[3] = byte(phrase)
 	err := a.sendCommand(cmdArray)
 	return err
 }
@@ -361,6 +466,16 @@ func (a *TrainEngine) Speak() error {
 	cmdArray[1] = byte(0)
 	err := a.sendCommand(cmdArray)
 	return err
+}
+
+func (a *TrainEngine) SpeakPhrase(phrase SpeechPhrase) error {
+	err := a.SetSpeechPhrase((phrase))
+
+	if err != nil {
+		return err
+	}
+
+	return a.Speak()
 }
 
 func (a *TrainEngine) SendCustomCommand(cmd []byte) error {

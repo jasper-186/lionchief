@@ -51,3 +51,13 @@ const (
 	SOUNDPITCH_HIGH    int = 1
 	SOUNDPITCH_HIGHEST int = 2
 )
+
+type SpeechPhrase int
+
+const (
+	SPEECHPHRASE_LOWEST  int = 254
+	SPEECHPHRASE_LOW     int = 255
+	SPEECHPHRASE_NORMAL  int = 0
+	SPEECHPHRASE_HIGH    int = 1
+	SPEECHPHRASE_HIGHEST int = 2
+)

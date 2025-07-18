@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"math/rand"
 	"time"
 
 	"tinygo.org/x/bluetooth"
@@ -49,7 +50,7 @@ func (a *TrainSimulator) AdjustSpeedTo(speed int) error {
 	for currentSpeed != speed {
 		newSpeed := currentSpeed + increment
 		newVolume := int(math.Ceil(float64(newSpeed) / 3))
-		err := a.engine.SetRunningVolume(SOUNDTYPE_ENGINE, newVolume)
+		err := a.engine.SetEngineVolume(newVolume)
 		if err != nil {
 			return err
 		}
@@ -155,7 +156,13 @@ func (a *TrainSimulator) SoundBell(length int) {
 }
 
 func (a *TrainSimulator) Speak() error {
-	return a.engine.Speak()
+	validPhrases := []int{SPEECHPHRASE_HIGHEST, SPEECHPHRASE_HIGH, SPEECHPHRASE_NORMAL, SPEECHPHRASE_LOW, SPEECHPHRASE_LOWEST}
+	phrase := validPhrases[rand.Intn(len(validPhrases))]
+	return a.engine.SpeakPhrase(SpeechPhrase(phrase))
+}
+
+func (a *TrainSimulator) SpeakPhrase(phrase SpeechPhrase) error {
+	return a.engine.SpeakPhrase(phrase)
 }
 
 func (a *TrainSimulator) Lights(enabled bool) error {
@@ -172,9 +179,4 @@ func (a *TrainSimulator) GetCurrentState() *TrainState {
 func (a *TrainSimulator) ToggleLights() error {
 	log.Println("ToggleLights")
 	return a.engine.SetLight(!a.engine.GetLight())
-}
-
-func (a *TrainSimulator) SetRunningVolume(soundtype SoundType, volume int) error {
-	log.Println("SetRunningVolume")
-	return a.engine.SetRunningVolume(soundtype, volume)
 }
