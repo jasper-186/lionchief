@@ -11,7 +11,8 @@ import (
 )
 
 type TrainSimulator struct {
-	engine *TrainEngine
+	address bluetooth.Address
+	engine  *TrainEngine
 }
 
 func NewSimulator(trainAddress bluetooth.Address) (*TrainSimulator, error) {
@@ -21,7 +22,8 @@ func NewSimulator(trainAddress bluetooth.Address) (*TrainSimulator, error) {
 	}
 
 	simulator := TrainSimulator{
-		engine: train,
+		address: trainAddress,
+		engine:  train,
 	}
 
 	return &simulator, nil
@@ -29,6 +31,15 @@ func NewSimulator(trainAddress bluetooth.Address) (*TrainSimulator, error) {
 
 func (a *TrainSimulator) Disconnect() error {
 	return a.engine.Disconnect()
+}
+
+func (a *TrainSimulator) Reconnect() error {
+	train, err := NewEngineDefaultBluetoothAdapter(a.address)
+	if err != nil {
+		return err
+	}
+	a.engine = train
+	return nil
 }
 
 func (a *TrainSimulator) AdjustSpeedTo(speed int) error {
