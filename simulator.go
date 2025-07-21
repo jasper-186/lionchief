@@ -172,10 +172,11 @@ func (a *TrainSimulator) TrySpeak() error {
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_SPEAK)
 	cmdArray[1] = byte(phrase)
+	log.Printf("Calling Speak with arg: '%v'", phrase)
 
 	err := a.engine.SendCustomCommand(cmdArray)
 	if err != nil {
-		log.Printf("Failed Custom Command: '%s'", err)
+		log.Printf("Failed Custom Command: '%v'", err)
 	}
 	return nil
 }
