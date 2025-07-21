@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
 	"time"
 
 	"tinygo.org/x/bluetooth"
@@ -167,16 +166,20 @@ func (a *TrainSimulator) SoundBell(length int) {
 }
 
 func (a *TrainSimulator) TrySpeak() error {
-	validPhrases := []int{SPEECHPHRASE_HIGHEST, SPEECHPHRASE_HIGH, SPEECHPHRASE_NORMAL, SPEECHPHRASE_LOW, SPEECHPHRASE_LOWEST}
-	phrase := validPhrases[rand.Intn(len(validPhrases))]
-	cmdArray := make([]byte, 2)
-	cmdArray[0] = byte(COMMANDTYPE_SPEAK)
-	cmdArray[1] = byte(phrase)
-	log.Printf("Calling Speak with arg: '%v'", phrase)
+	var cmdArray []byte
 
-	err := a.engine.SendCustomCommand(cmdArray)
-	if err != nil {
-		log.Printf("Failed Custom Command: '%v'", err)
+	for i := 0; i < 10; i++ {
+		cmdArray = make([]byte, 2)
+
+		cmdArray[0] = byte(COMMANDTYPE_SPEAK)
+		cmdArray[1] = byte(i)
+		log.Printf("Calling Speak with arg: '%v'", i)
+
+		err := a.engine.SendCustomCommand(cmdArray)
+		if err != nil {
+			log.Printf("Failed Custom Command: '%v'", err)
+		}
+		time.Sleep(5 * time.Second)
 	}
 	return nil
 }

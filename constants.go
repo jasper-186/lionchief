@@ -55,9 +55,7 @@ const (
 type SpeechPhrase int
 
 const (
-	SPEECHPHRASE_LOWEST  int = 254
-	SPEECHPHRASE_LOW     int = 255
-	SPEECHPHRASE_NORMAL  int = 0
-	SPEECHPHRASE_HIGH    int = 1
-	SPEECHPHRASE_HIGHEST int = 2
+	SPEECHPHRASE_HEY_THERE          int = 0
+	SPEECHPHRASE_PENNSYLVANIA_FLYER int = 1
+	SPEECHPHRASE_HIGHEST            int = 2
 )
