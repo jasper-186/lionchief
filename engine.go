@@ -186,7 +186,14 @@ func (a *TrainEngine) sendCommand(cmdByteArray []byte) error {
 	written, err := a.writeCharacteristic.Write(checksumedCmd)
 
 	if err != nil {
-		return err
+		if !errors.Is(err, bluetooth.ErrTimeoutonWrite) {
+			return err
+		} else {
+			log.Println("command timed out on write, continuing on")
+			// written isnt going to match so bail here
+			log.Println("sendCommand-Done")
+			return nil
+		}
 	}
 
 	if written != len(checksumedCmd) {
