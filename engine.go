@@ -183,7 +183,7 @@ func (a *TrainEngine) sendCommand(cmdByteArray []byte) error {
 	}
 
 	checksumedCmd[len(cmdByteArray)+1] = calculateChecksum(cmdByteArray)
-	written, err := a.writeCharacteristic.WriteWithoutResponse(checksumedCmd)
+	written, err := a.writeCharacteristic.Write(checksumedCmd)
 
 	if err != nil {
 		return err
