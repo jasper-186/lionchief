@@ -166,15 +166,29 @@ func (a *TrainSimulator) SoundBell(length int) {
 	a.engine.SetBell(false)
 }
 
-func (a *TrainSimulator) Speak() error {
+func (a *TrainSimulator) TrySpeak() error {
 	validPhrases := []int{SPEECHPHRASE_HIGHEST, SPEECHPHRASE_HIGH, SPEECHPHRASE_NORMAL, SPEECHPHRASE_LOW, SPEECHPHRASE_LOWEST}
 	phrase := validPhrases[rand.Intn(len(validPhrases))]
-	return a.engine.SpeakPhrase(SpeechPhrase(phrase))
+	cmdArray := make([]byte, 2)
+	cmdArray[0] = byte(COMMANDTYPE_SPEAK)
+	cmdArray[1] = byte(phrase)
+
+	err := a.engine.SendCustomCommand(cmdArray)
+	if err != nil {
+		log.Printf("Failed Custom Command: '%s'", err)
+	}
+	return nil
 }
 
-func (a *TrainSimulator) SpeakPhrase(phrase SpeechPhrase) error {
-	return a.engine.SpeakPhrase(phrase)
-}
+// func (a *TrainSimulator) Speak() error {
+// 	validPhrases := []int{SPEECHPHRASE_HIGHEST, SPEECHPHRASE_HIGH, SPEECHPHRASE_NORMAL, SPEECHPHRASE_GIVE_OIL_SQEAKY, SPEECHPHRASE_LOWEST}
+// 	phrase := validPhrases[rand.Intn(len(validPhrases))]
+// 	return a.engine.SpeakPhrase(SpeechPhrase(phrase))
+// }
+
+// func (a *TrainSimulator) SpeakPhrase(phrase SpeechPhrase) error {
+// 	return a.engine.SpeakPhrase(phrase)
+// }
 
 func (a *TrainSimulator) Lights(enabled bool) error {
 	log.Println("Lights")
@@ -224,6 +238,6 @@ func (a *TrainSimulator) SetHornPitch(pitch SoundPitch) error {
 	return a.engine.SetHornPitch(pitch)
 }
 
-func (a *TrainSimulator) SetSpeechPhrase(phrase SpeechPhrase) error {
-	return a.engine.SetSpeechPhrase(phrase)
+func (a *TrainSimulator) SetSpeechPitch(pitch SoundPitch) error {
+	return a.engine.SetSpeechPitch(pitch)
 }
