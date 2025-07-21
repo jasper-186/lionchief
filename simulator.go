@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"math/rand"
 	"time"
 
 	"tinygo.org/x/bluetooth"
@@ -165,34 +166,24 @@ func (a *TrainSimulator) SoundBell(length int) {
 	a.engine.SetBell(false)
 }
 
-func (a *TrainSimulator) TrySpeak() error {
-	var cmdArray []byte
+func (a *TrainSimulator) Speak() error {
+	validPhrases := []int{SPEECHPHRASE_CALL_ME_PENNSYLVANIA_FLYER, SPEECHPHRASE_FASTEST_FREIGHT_YOU_CAN_HIRE, SPEECHPHRASE_HEY_THERE_WHAT_ARE_YOU_WAITING_FOR, SPEECHPHRASE_I_MAKE_STEAM_FROM_WATER_AND_FIRE, SPEECHPHRASE_PENNSYLVANIA_FLYER_IS_READY_TO_ROLL, SPEECHPHRASE_IM_FEELING_A_LITTLE_SQUEAKY_GIVE_ME_A_LITTLE_OIL}
+	phrase := validPhrases[rand.Intn(len(validPhrases))]
+	return a.engine.SpeakPhrase(SpeechPhrase(phrase))
+}
 
-	for i := 0; i < 10; i++ {
-		cmdArray = make([]byte, 2)
+func (a *TrainSimulator) SpeakPhrase(phrase SpeechPhrase) error {
+	return a.engine.SpeakPhrase(phrase)
+}
 
-		cmdArray[0] = byte(COMMANDTYPE_SPEAK)
-		cmdArray[1] = byte(i)
-		log.Printf("Calling Speak with arg: '%v'", i)
+func (a *TrainSimulator) SpeakSpeel() error {
 
-		err := a.engine.SendCustomCommand(cmdArray)
-		if err != nil {
-			log.Printf("Failed Custom Command: '%v'", err)
-		}
-		time.Sleep(5 * time.Second)
+	for i := 4; i < 7; i++ {
+		a.engine.SpeakPhrase(SpeechPhrase(i))
+		time.Sleep(3 * time.Second)
 	}
 	return nil
 }
-
-// func (a *TrainSimulator) Speak() error {
-// 	validPhrases := []int{SPEECHPHRASE_HIGHEST, SPEECHPHRASE_HIGH, SPEECHPHRASE_NORMAL, SPEECHPHRASE_GIVE_OIL_SQEAKY, SPEECHPHRASE_LOWEST}
-// 	phrase := validPhrases[rand.Intn(len(validPhrases))]
-// 	return a.engine.SpeakPhrase(SpeechPhrase(phrase))
-// }
-
-// func (a *TrainSimulator) SpeakPhrase(phrase SpeechPhrase) error {
-// 	return a.engine.SpeakPhrase(phrase)
-// }
 
 func (a *TrainSimulator) Lights(enabled bool) error {
 	log.Println("Lights")

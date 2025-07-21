@@ -453,24 +453,16 @@ func (a *TrainEngine) GetLight() bool {
 	return (*a).state.Light
 }
 
-func (a *TrainEngine) Speak() error {
+func (a *TrainEngine) SpeakPhrase(phrase SpeechPhrase) error {
+	log.Printf("SpeakPhrase called with '%v' as argument", phrase)
+
 	cmdArray := make([]byte, 2)
 	cmdArray[0] = byte(COMMANDTYPE_SPEAK)
-	cmdArray[1] = byte(0)
+	cmdArray[1] = byte(phrase)
+
 	err := a.sendCommand(cmdArray)
 	return err
 }
-
-// func (a *TrainEngine) SpeakPhrase(phrase SpeechPhrase) error {
-// 	log.Printf("SpeakPhrase called with '%v' as argument", phrase)
-// 	err := a.SetSpeechPitch((phrase))
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return a.Speak()
-// }
 
 func (a *TrainEngine) SendCustomCommand(cmd []byte) error {
 	return a.sendCommand(cmd)

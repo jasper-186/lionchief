@@ -54,8 +54,14 @@ const (
 
 type SpeechPhrase int
 
+// These phrases are specific to the engine found in the Pennsylvania Flyer train set (6-83984)
+// And may not reflect your local engine
 const (
-	SPEECHPHRASE_HEY_THERE          int = 0
-	SPEECHPHRASE_PENNSYLVANIA_FLYER int = 1
-	SPEECHPHRASE_HIGHEST            int = 2
+	SPEECHPHRASE_IM_FEELING_A_LITTLE_SQUEAKY_GIVE_ME_A_LITTLE_OIL  int = 0
+	SPEECHPHRASE_PENNSYLVANIA_FLYER_IS_READY_TO_ROLL               int = 1
+	SPEECHPHRASE_HEY_THERE_WHAT_ARE_YOU_WAITING_FOR                int = 2
+	SPEECHPHRASE_IM_FEELING_A_LITTLE_SQUEAKY_GIVE_ME_A_LITTLE_OIL2 int = 3
+	SPEECHPHRASE_I_MAKE_STEAM_FROM_WATER_AND_FIRE                  int = 4
+	SPEECHPHRASE_FASTEST_FREIGHT_YOU_CAN_HIRE                      int = 5
+	SPEECHPHRASE_CALL_ME_PENNSYLVANIA_FLYER                        int = 6
 )
