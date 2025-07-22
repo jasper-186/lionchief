@@ -39,10 +39,13 @@ type TrainState struct {
 }
 
 type TrainEngine struct {
+	adapter             *bluetooth.Adapter
+	disconnected        *chan bluetooth.Device
 	device              *bluetooth.Device
 	writeService        *bluetooth.DeviceService
 	writeCharacteristic *bluetooth.DeviceCharacteristic
 	state               *TrainState
+	reconnect           bool
 }
 
 func must(action string, err error) {
@@ -70,6 +73,14 @@ func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*Tra
 	log.Println("Enabling Adapter")
 	adapter.Enable()
 
+	disconnected := make(chan bluetooth.Device)
+	adapter.SetConnectHandler(func(device bluetooth.Device, connected bool) {
+		log.Println("Connection handler")
+		if !connected {
+			disconnected <- device
+		}
+	})
+
 	device, err := adapter.Connect(trainAddress, connectionParams)
 	must(fmt.Sprintf("Connecting to '%v'\n", trainAddress.MAC.String()), err)
 
@@ -93,6 +104,8 @@ func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*Tra
 	}
 
 	train := TrainEngine{
+		adapter:             adapter,
+		disconnected:        &disconnected,
 		device:              &device,
 		writeService:        &devicesServices[0],
 		writeCharacteristic: &characteristics[0],
@@ -107,8 +120,55 @@ func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*Tra
 			VolumeSpeech: 1,
 			//VolumeChuff:  1,
 		},
+		reconnect: true,
 	}
 
+	// fire off a new process to wait an listen for a disconnect
+	go func(engine *TrainEngine) {
+		for {
+			device := <-disconnected
+			log.Println("Device disconnected.")
+			if device.Address == engine.device.Address {
+				log.Println("Train disconnected.")
+				// the train is disconnected
+				if engine.reconnect {
+					log.Println("Attempting Reconnect")
+					new_device, err := adapter.Connect(engine.device.Address, connectionParams)
+					if err != nil {
+						log.Panic(err)
+						return
+					}
+					nds, err := new_device.DiscoverServices([]bluetooth.UUID{ReadWriteService})
+					if err != nil {
+						log.Panic(err)
+						return
+					}
+					if len(nds) < 1 {
+						log.Panic(errors.New("failed to find read/write service"))
+						return
+					}
+
+					ndc, err := nds[0].DiscoverCharacteristics([]bluetooth.UUID{WriteCharacteristic})
+					if err != nil {
+						log.Panic(err)
+						return
+					}
+
+					if len(ndc) < 1 {
+						log.Panic(errors.New("write characteristic not found"))
+					}
+
+					// once reconnected, resetup these links with the new stuff
+					engine.device = &device
+					engine.writeService = &devicesServices[0]
+					engine.writeCharacteristic = &characteristics[0]
+				} else {
+					break
+				}
+			}
+		}
+
+	}(&train)
 	// Make sure the train is in the default state (specifically Volumes) before we return it
 	err = train.ResetState()
 	if err != nil {
@@ -118,6 +178,7 @@ func NewEngine(trainAddress bluetooth.Address, adapter *bluetooth.Adapter) (*Tra
 }
 
 func (a *TrainEngine) Disconnect() error {
+	a.reconnect = false
 	return a.device.Disconnect()
 }
 
