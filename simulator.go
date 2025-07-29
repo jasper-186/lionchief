@@ -154,16 +154,30 @@ func (a *TrainSimulator) ReverseTrainService() error {
 	return nil
 }
 
-func (a *TrainSimulator) SoundHorn(length int) {
-	a.engine.SetHorn(true)
+func (a *TrainSimulator) SoundHorn(length int) error {
+	err := a.engine.SetHorn(true)
+	if err != nil {
+		return err
+	}
 	time.Sleep(time.Second * time.Duration(length))
-	a.engine.SetHorn(false)
+	err = a.engine.SetHorn(false)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (a *TrainSimulator) SoundBell(length int) {
-	a.engine.SetBell(true)
+func (a *TrainSimulator) SoundBell(length int) error {
+	err := a.engine.SetBell(true)
+	if err != nil {
+		return err
+	}
 	time.Sleep(time.Second * time.Duration(length))
-	a.engine.SetBell(false)
+	err = a.engine.SetBell(false)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a *TrainSimulator) Speak() error {
